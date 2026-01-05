@@ -16,8 +16,14 @@ export const api = {
         const data = await res.json();
         localStorage.setItem('opti_session', JSON.stringify(data.user));
         return data.user;
+      } else {
+        const errData = await res.json();
+        console.warn("Login refused:", errData.message);
       }
-    } catch (e) { console.error("Login failed", e); }
+    } catch (e) { 
+      console.error("Fetch failed: Is the Node.js server running on port 3000?", e); 
+      throw new Error("Cannot connect to server. Ensure server.js is running.");
+    }
     return null;
   },
 
@@ -32,8 +38,13 @@ export const api = {
 
   // --- Suppliers ---
   async getSuppliers(): Promise<Supplier[]> {
-    const res = await fetch(`${API_BASE}/suppliers`);
-    return res.json();
+    try {
+      const res = await fetch(`${API_BASE}/suppliers`);
+      return res.json();
+    } catch (e) {
+      console.error("Failed to fetch suppliers", e);
+      return [];
+    }
   },
 
   async addSupplier(sup: Omit<Supplier, 'id'>): Promise<Supplier> {
@@ -56,8 +67,13 @@ export const api = {
 
   // --- Inventory ---
   async getInventory(): Promise<InventoryItem[]> {
-    const res = await fetch(`${API_BASE}/inventory`);
-    return res.json();
+    try {
+      const res = await fetch(`${API_BASE}/inventory`);
+      return res.json();
+    } catch (e) {
+      console.error("Failed to fetch inventory", e);
+      return [];
+    }
   },
 
   async addInventoryItem(item: Omit<InventoryItem, 'id'>): Promise<InventoryItem> {
@@ -79,8 +95,13 @@ export const api = {
 
   // --- Sales ---
   async getSales(): Promise<Sale[]> {
-    const res = await fetch(`${API_BASE}/sales`);
-    return res.json();
+    try {
+      const res = await fetch(`${API_BASE}/sales`);
+      return res.json();
+    } catch (e) {
+      console.error("Failed to fetch sales", e);
+      return [];
+    }
   },
 
   async processSale(saleData: Omit<Sale, 'id' | 'date' | 'balance'>): Promise<Sale> {

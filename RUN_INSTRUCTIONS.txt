@@ -2,48 +2,39 @@
 OPTIMASTER PRO - DESKTOP SYSTEM SETUP
 =====================================
 
-Follow these steps to install and run the system on your local computer.
+Follow these steps exactly to fix the login issue and create your desktop icon.
 
-STEP 1: INSTALL TOOLS
----------------------
-1. Install Node.js (v18+): https://nodejs.org/
-2. Install MySQL Server: https://dev.mysql.com/downloads/installer/
+STEP 1: DATABASE INITIALIZATION (CRITICAL)
+------------------------------------------
+1. Open MySQL Workbench or your MySQL Command Line.
+2. Copy all the code from 'migration.sql' and run it.
+3. This creates the 'optimaster_db' and the Admin user needed for login.
 
-STEP 2: DATABASE SETUP
-----------------------
-1. Open MySQL Workbench or Command Line.
-2. Run the code inside 'migration.sql' to create the database.
-3. Your login for the app is:
+STEP 2: CONFIGURE DATABASE PASSWORD
+-----------------------------------
+1. Open 'server.js' in a text editor.
+2. Find: password: 'your_password'
+3. Replace 'your_password' with your actual MySQL root password.
+4. Save the file.
+
+STEP 3: CREATE DESKTOP ICON
+---------------------------
+1. Go to your project folder.
+2. Right-click the file named 'launch_optimaster.bat'.
+3. Select 'Send to' -> 'Desktop (create shortcut)'.
+4. Go to your Desktop, right-click the shortcut -> Rename to "OptiMaster Pro".
+5. (Optional) Right-click shortcut -> Properties -> Change Icon to give it a professional look.
+
+STEP 4: RUNNING THE APP
+-----------------------
+1. Double-click your "OptiMaster Pro" desktop icon.
+2. Wait a few seconds for the servers to start.
+3. A clean window will open without browser address bars.
+4. LOGIN CREDENTIALS:
    Email: admin@optimaster.com
    Password: admin123
 
-STEP 3: SYSTEM CONFIGURATION
-----------------------------
-1. Open 'server.js' in a text editor (like Notepad).
-2. Look for the 'dbConfig' section.
-3. Change 'your_password' to your actual MySQL root password.
-4. Save the file.
-
-STEP 4: INSTALL DEPENDENCIES
-----------------------------
-Open your terminal/command prompt in the project folder and run:
-   npm install express mysql2 cors lucide-react recharts
-
-STEP 5: HOW TO CREATE A DESKTOP ICON
-------------------------------------
-1. Find the file 'launch_optimaster.bat' in the project folder.
-2. Right-click 'launch_optimaster.bat' -> Send to -> Desktop (create shortcut).
-3. Go to your Desktop, right-click the new shortcut -> Rename -> "OptiMaster Pro".
-4. (Optional) Right-click shortcut -> Properties -> Change Icon.
-   - You can browse to a custom .ico file to make it look professional.
-
-STEP 6: STARTING THE SYSTEM
----------------------------
-1. Double-click your "OptiMaster Pro" desktop icon.
-2. The backend will start automatically in the background.
-3. The app will open in a dedicated window without browser bars.
-
-TROUBLESHOOTING
----------------
-- If the app doesn't open, make sure you ran 'npm run dev' to start your frontend server.
-- If login fails, check if 'node server.js' is running and MySQL is active.
+TROUBLESHOOTING LOGIN:
+----------------------
+- If it still says "Invalid", ensure you ran 'migration.sql' in MySQL.
+- Check the console window that opens when you run the .bat file to see if there are database connection errors.

@@ -7,7 +7,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// MySQL Connection Configuration - UPDATE PASSWORD HERE
+// MySQL Connection Configuration
+// IMPORTANT: Change 'your_password' to your actual MySQL root password!
 const dbConfig = {
   host: 'localhost',
   user: 'root',
@@ -15,10 +16,30 @@ const dbConfig = {
   database: 'optimaster_db'
 };
 
-const getDB = async () => await mysql.createConnection(dbConfig);
+const getDB = async () => {
+  try {
+    return await mysql.createConnection(dbConfig);
+  } catch (err) {
+    console.error("CRITICAL: Could not connect to MySQL Database.");
+    console.error("Reason:", err.message);
+    throw err;
+  }
+};
+
+// Verify Database Connection on Startup
+async function testConnection() {
+  try {
+    const db = await getDB();
+    console.log('✅ Connected to MySQL: optimaster_db');
+    await db.end();
+  } catch (err) {
+    console.log('❌ DATABASE ERROR: Verify your MySQL service is running and password is correct in server.js');
+  }
+}
+testConnection();
 
 /**
- * AUTH API - Email based
+ * AUTH API
  */
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
@@ -36,7 +57,8 @@ app.post('/api/login', async (req, res) => {
       res.status(401).json({ success: false, message: 'Invalid email or password' });
     }
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error("Login attempt failed:", error.message);
+    res.status(500).json({ success: false, message: "Server Database Error" });
   }
 });
 
@@ -63,7 +85,7 @@ app.post('/api/suppliers', async (req, res) => {
       [name, mobile, address]
     );
     await db.end();
-    res.json({ id: result.insertId, name, mobile, address });
+    res.json({ id: result.insertId.toString(), name, mobile, address });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -93,7 +115,7 @@ app.get('/api/inventory', async (req, res) => {
     const db = await getDB();
     const [rows] = await db.execute('SELECT * FROM inventory ORDER BY id DESC');
     await db.end();
-    res.json(rows);
+    res.json(rows.map(r => ({...r, id: r.id.toString(), supplierId: r.supplierId?.toString()})));
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -108,7 +130,7 @@ app.post('/api/inventory', async (req, res) => {
       [name, category, sku, quantity, costPrice, sellingPrice, supplierId, description]
     );
     await db.end();
-    res.json({ id: result.insertId, ...req.body });
+    res.json({ id: result.insertId.toString(), ...req.body });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -137,7 +159,11 @@ app.get('/api/sales', async (req, res) => {
     const result = [];
     for (const sale of sales) {
       const [items] = await db.execute('SELECT * FROM sale_items WHERE saleId = ?', [sale.id]);
-      result.push({ ...sale, items });
+      result.push({ 
+        ...sale, 
+        id: `INV-${sale.id}`, 
+        items: items.map(i => ({...i, itemId: i.itemId.toString()})) 
+      });
     }
     await db.end();
     res.json(result);
@@ -160,7 +186,6 @@ app.post('/api/sales', async (req, res) => {
     const saleId = saleResult.insertId;
 
     for (const item of items) {
-      // Fetch latest cost price for accurate profit snapshot
       const [inv] = await db.execute('SELECT costPrice, sku FROM inventory WHERE id = ?', [item.itemId]);
       const cost = inv[0]?.costPrice || 0;
       const sku = inv[0]?.sku || '';
@@ -177,7 +202,7 @@ app.post('/api/sales', async (req, res) => {
 
     await db.commit();
     await db.end();
-    res.json({ id: `INV-${saleId}`, date: new Date().toISOString(), balance });
+    res.json({ id: `INV-${saleId}`, date: new Date().toISOString(), balance, status: "Pending" });
   } catch (error) {
     await db.rollback();
     await db.end();
@@ -186,21 +211,23 @@ app.post('/api/sales', async (req, res) => {
 });
 
 app.patch('/api/sales/:id/status', async (req, res) => {
-  const { id } = req.params;
+  let { id } = req.params;
   const { status, paymentReceived } = req.body;
+  
+  if (id.startsWith('INV-')) {
+    id = id.replace('INV-', '');
+  }
+
   const db = await getDB();
   try {
     await db.beginTransaction();
     
-    // Update balance
     if (paymentReceived) {
       await db.execute('UPDATE sales SET advancePaid = advancePaid + ?, balance = GREATEST(0, balance - ?) WHERE id = ?', [paymentReceived, paymentReceived, id]);
     }
     
-    // Update status
     await db.execute('UPDATE sales SET status = ? WHERE id = ?', [status, id]);
 
-    // Handle inventory return if cancelled
     if (status === 'Cancelled') {
       const [items] = await db.execute('SELECT itemId, quantity FROM sale_items WHERE saleId = ?', [id]);
       for (const item of items) {
@@ -218,4 +245,4 @@ app.patch('/api/sales/:id/status', async (req, res) => {
   }
 });
 
-app.listen(3000, () => console.log('OptiMaster API listening on port 3000'));
+app.listen(3000, () => console.log('🚀 OptiMaster API listening on port 3000'));
