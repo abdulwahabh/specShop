@@ -1,0 +1,49 @@
+
+OPTIMASTER PRO - DESKTOP SYSTEM SETUP
+=====================================
+
+Follow these steps to install and run the system on your local computer.
+
+STEP 1: INSTALL TOOLS
+---------------------
+1. Install Node.js (v18+): https://nodejs.org/
+2. Install MySQL Server: https://dev.mysql.com/downloads/installer/
+
+STEP 2: DATABASE SETUP
+----------------------
+1. Open MySQL Workbench or Command Line.
+2. Run the code inside 'migration.sql' to create the database.
+3. Your login for the app is:
+   Email: admin@optimaster.com
+   Password: admin123
+
+STEP 3: SYSTEM CONFIGURATION
+----------------------------
+1. Open 'server.js' in a text editor (like Notepad).
+2. Look for the 'dbConfig' section.
+3. Change 'your_password' to your actual MySQL root password.
+4. Save the file.
+
+STEP 4: INSTALL DEPENDENCIES
+----------------------------
+Open your terminal/command prompt in the project folder and run:
+   npm install express mysql2 cors lucide-react recharts
+
+STEP 5: HOW TO CREATE A DESKTOP ICON
+------------------------------------
+1. Find the file 'launch_optimaster.bat' in the project folder.
+2. Right-click 'launch_optimaster.bat' -> Send to -> Desktop (create shortcut).
+3. Go to your Desktop, right-click the new shortcut -> Rename -> "OptiMaster Pro".
+4. (Optional) Right-click shortcut -> Properties -> Change Icon.
+   - You can browse to a custom .ico file to make it look professional.
+
+STEP 6: STARTING THE SYSTEM
+---------------------------
+1. Double-click your "OptiMaster Pro" desktop icon.
+2. The backend will start automatically in the background.
+3. The app will open in a dedicated window without browser bars.
+
+TROUBLESHOOTING
+---------------
+- If the app doesn't open, make sure you ran 'npm run dev' to start your frontend server.
+- If login fails, check if 'node server.js' is running and MySQL is active.
